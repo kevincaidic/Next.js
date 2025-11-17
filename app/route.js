@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// Sample data - replace with your actual database
 let users = [
   {
     userId: "1",
@@ -9,48 +8,42 @@ let users = [
     created_at: { seconds: 1672531200 }
   },
   {
-    userId: "2", 
-    user_id: "user_002",
+    userId: "2",
+    user_id: "user_002", 
     email: "customer@example.com",
     created_at: { seconds: 1672617600 }
   }
 ];
 
-// GET /api/users
-export async function GET() {
-  console.log('📥 GET /api/users request');
-  
-  return NextResponse.json({ 
-    success: true, 
-    users: users,
-    count: users.length,
-    message: "Online API is working! 🚀"
-  });
-}
-
-// POST /api/users
-export async function POST(request) {
+// DELETE /api/users/[id]
+export async function DELETE(request, { params }) {
   try {
-    const { email } = await request.json();
+    const { id } = params;
+    console.log('🗑️ DELETE user request:', id);
     
-    const newUser = {
-      userId: Date.now().toString(),
-      user_id: `user_${Date.now()}`,
-      email: email,
-      created_at: { seconds: Math.floor(Date.now() / 1000) }
-    };
+    const userIndex = users.findIndex(user => 
+      user.userId === id || user.user_id === id
+    );
     
-    users.push(newUser);
+    if (userIndex === -1) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
     
-    return NextResponse.json({ 
-      success: true, 
-      user: newUser,
-      message: "User created successfully"
+    const deletedUser = users.splice(userIndex, 1)[0];
+    
+    return NextResponse.json({
+      success: true,
+      message: 'User deleted successfully!',
+      deletedUser: deletedUser,
+      remainingCount: users.length
     });
     
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: "Failed to create user" }, 
+      { success: false, error: 'Failed to delete user' },
       { status: 500 }
     );
   }
